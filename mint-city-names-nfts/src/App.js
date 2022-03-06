@@ -29,6 +29,8 @@ function App() {
   let [totalNFTs, setTotalNFTs] = useState(0);
   let [totalNFTsMinted, setTotalNFTsMinted] = useState(0);
 
+  let [merkleTreeLeaves, setMerkleTreeLeaves] = useState([]);
+
   const checkIfWalletIsConnected = async () => {
     const { ethereum } = window;
 
@@ -202,6 +204,32 @@ function App() {
       setLoaderState(false);
     }
   };
+
+  const getMerkleTreeLeaves = async () => {
+    try {
+      const { ethereum } = window;
+
+      if (ethereum) {
+        console.log("Getting Merkle Tree Leaves!");
+
+        const provider = new ethers.providers.Web3Provider(ethereum);
+        const signer = provider.getSigner();
+        const connectedContract = new ethers.Contract(
+          CONTRACT_ADDRESS,
+          cityNameNFT.abi,
+          signer
+        );
+
+        const _merkleTreeLeaves = await connectedContract.getMerkleTreeLeaves();
+        setMerkleTreeLeaves(_merkleTreeLeaves);
+      } else {
+        console.log("Ethereum object doesn't exist!");
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   // Render Methods
   const renderNotConnectedContainer = () => (
     <button
@@ -218,7 +246,7 @@ function App() {
   }, []);
 
   return (
-    <div className="flex flex-col h-screen px-2 bg-gray-900">
+    <div className="flex flex-col min-h-screen px-2 bg-gray-900">
       <header className="flex place-content-center mt-10">
         <h1 className="text-5xl text-center text-transparent bg-clip-text bg-gradient-to-r from-violet-500 to-blue-500 font-extrabold">
           My City Names NFT Collection
@@ -278,8 +306,25 @@ function App() {
             )}
           </div>
         </div>
+        <div className="grid grid-cols-1 place-items-center gap-5">
+          <button
+            onClick={getMerkleTreeLeaves}
+            className="text-white font-semibold px-5 py-3 bg-gradient-to-r from-violet-500 to-blue-500 hover:from-violet-600 hover:to-blue-600 rounded-md"
+          >
+            Get Merkle Tree Leaves
+          </button>
+          <div className="grid grid-cols-1 place-items-center text-slate-100 gap-2">
+            {merkleTreeLeaves.map((leaf, index) => {
+              return (
+                <div key={index}>
+                  <span>{leaf}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
       </div>
-      <footer className="my-5">
+      <footer className="my-10">
         <a
           className="flex items-center justify-center text-white underline hover:no-underline"
           href={TWITTER_LINK}
