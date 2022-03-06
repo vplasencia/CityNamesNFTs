@@ -306,23 +306,25 @@ function App() {
             )}
           </div>
         </div>
-        <div className="grid grid-cols-1 place-items-center gap-5">
-          <button
-            onClick={getMerkleTreeLeaves}
-            className="text-white font-semibold px-5 py-3 bg-gradient-to-r from-violet-500 to-blue-500 hover:from-violet-600 hover:to-blue-600 rounded-md"
-          >
-            Get Merkle Tree Leaves
-          </button>
-          <div className="grid grid-cols-1 place-items-center text-slate-100 gap-2">
-            {merkleTreeLeaves.map((leaf, index) => {
-              return (
-                <div key={index}>
-                  <span>{leaf}</span>
-                </div>
-              );
-            })}
+        {currentAccount !== "" && (
+          <div className="grid grid-cols-1 place-items-center gap-5">
+            <button
+              onClick={getMerkleTreeLeaves}
+              className="text-white font-semibold px-5 py-3 bg-gradient-to-r from-violet-500 to-blue-500 hover:from-violet-600 hover:to-blue-600 rounded-md"
+            >
+              Get Merkle Tree Leaves
+            </button>
+            <div className="grid grid-cols-1 place-items-center text-slate-100 gap-2">
+              {merkleTreeLeaves.map((leaf, index) => {
+                return (
+                  <div key={index}>
+                    <span>{leaf}</span>
+                  </div>
+                );
+              })}
+            </div>
           </div>
-        </div>
+        )}
       </div>
       <footer className="my-10">
         <a
