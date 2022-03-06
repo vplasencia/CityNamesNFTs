@@ -18,6 +18,10 @@ contract CityNameNFT is ERC721URIStorage {
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIds;
 
+    uint256 public totalNFTsMinted;
+
+    uint256 public totalNFTs;
+
     // Part one of the svg concatenation
     string svgPartOne =
         '<svg width="350" height="350" viewBox="0 0 350 350" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="a" x1="0" y1="0" x2="270" y2="270" gradientUnits="userSpaceOnUse"><stop stop-color="#8b5cf6"/><stop offset="1" stop-color="#3b82f6" stop-opacity=".99"/></linearGradient></defs><rect width="100%" height="100%" fill="url(#a)"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" style="fill:#fff;font-family:serif;font-size:30px">';
@@ -41,9 +45,10 @@ contract CityNameNFT is ERC721URIStorage {
     event NewCityNameNFTMinted(address sender, uint256 tokenId);
 
     // Pass the name of the NFT token and its symbol
-    constructor() ERC721("CityNFT", "CITY") {
+    constructor(uint256 _totalNFts) ERC721("CityNFT", "CITY") {
         console.log("City NFT contract");
-        merkleTreeAddress = new MerkleTree(8);
+        totalNFTs = _totalNFts;
+        merkleTreeAddress = new MerkleTree(_totalNFts);
     }
 
     // Function that generate a random
@@ -68,6 +73,7 @@ contract CityNameNFT is ERC721URIStorage {
 
     // Function to build and mint the NFT
     function makeACityNFT(address personAddress) public {
+        require(totalNFTsMinted < totalNFTs, "No more NFTs to mint");
         uint256 newItemId = _tokenIds.current();
 
         string memory cityName = pickRandomCity(newItemId);
@@ -141,6 +147,7 @@ contract CityNameNFT is ERC721URIStorage {
 
         // Increment the counter for when the next NFT is minted.
         _tokenIds.increment();
+        totalNFTsMinted++;
         console.log(
             "An NFT w/ ID %s has been minted to %s",
             newItemId,
@@ -153,5 +160,13 @@ contract CityNameNFT is ERC721URIStorage {
     // Get the Merkle Tree leaves
     function getMerkleTreeLeaves() public view returns (bytes32[] memory) {
         return merkleTreeAddress.getLeaves();
+    }
+
+    function getTotalNFTsMinted() public view returns (uint256) {
+        return totalNFTsMinted;
+    }
+
+    function getTotalNFTs() public view returns (uint256) {
+        return totalNFTs;
     }
 }

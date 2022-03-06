@@ -11,9 +11,10 @@ import cityNameNFT from "./utils/CityNameNFT.json";
 // Constants
 const TWITTER_HANDLE = "ViviPlasenciaC";
 const TWITTER_LINK = `https://twitter.com/${TWITTER_HANDLE}`;
-const OPENSEA_LINK = "https://testnets.opensea.io/collection/citynft-pup4syh4w3";
+const OPENSEA_LINK =
+  "https://testnets.opensea.io/collection/citynft-nxmx0jgjmj";
 
-const CONTRACT_ADDRESS = "0xE4C37c0eDDdc3DFCD83869bC9255F7d5b9c798b8";
+const CONTRACT_ADDRESS = "0x0cd7A00087253211dED313A8bE52e6911a5918da";
 
 function App() {
   // A state variable to store the user's public wallet
@@ -24,6 +25,9 @@ function App() {
 
   // A state vatiable to store the address that will receive the NFT
   let [userAddressTo, setUserAddressTo] = useState("");
+
+  let [totalNFTs, setTotalNFTs] = useState(0);
+  let [totalNFTsMinted, setTotalNFTsMinted] = useState(0);
 
   const checkIfWalletIsConnected = async () => {
     const { ethereum } = window;
@@ -46,6 +50,7 @@ function App() {
       // Setup listener! This is for the case where a user comes to the site
       // and already had their wallet connected + authorized.
       setupEventListener();
+      getTotalAndMintedNFTs();
     } else {
       console.log("No authorized account found");
     }
@@ -80,6 +85,7 @@ function App() {
       // Setup listener! This is for the case where a user comes to the site
       // and have not had the wallet connected.
       setupEventListener();
+      getTotalAndMintedNFTs();
     } catch (error) {
       console.log(error);
     }
@@ -102,12 +108,40 @@ function App() {
         // This will "capture" the event when the contract throws it.
         connectedContract.on("NewCityNameNFTMinted", (from, tokenId) => {
           console.log(from, tokenId.toNumber());
+          setTotalNFTsMinted(tokenId.toNumber() + 1);
           alert(
             `Hey there! Your NFT was minted and sent to the provided wallet. It may be blank right now. It can take a max of 10 min to show up on OpenSea. Here's the link: https://testnets.opensea.io/assets/${CONTRACT_ADDRESS}/${tokenId.toNumber()}`
           );
         });
 
         console.log("Setup event listener!");
+      } else {
+        console.log("Ethereum object doesn't exist!");
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const getTotalAndMintedNFTs = async () => {
+    try {
+      const { ethereum } = window;
+
+      if (ethereum) {
+        console.log("Getting Total and Minted NFTs!");
+
+        const provider = new ethers.providers.Web3Provider(ethereum);
+        const signer = provider.getSigner();
+        const connectedContract = new ethers.Contract(
+          CONTRACT_ADDRESS,
+          cityNameNFT.abi,
+          signer
+        );
+
+        let _totalNFTs = await connectedContract.getTotalNFTs();
+        setTotalNFTs(_totalNFTs.toNumber());
+        let _totalNFtsMinted = await connectedContract.getTotalNFTsMinted();
+        setTotalNFTsMinted(_totalNFtsMinted.toNumber());
       } else {
         console.log("Ethereum object doesn't exist!");
       }
@@ -163,6 +197,8 @@ function App() {
       }
     } catch (error) {
       console.log(error);
+      alert(error.error.message);
+      setUserAddressTo("");
       setLoaderState(false);
     }
   };
@@ -204,6 +240,11 @@ function App() {
             >
               🌊 View Collection on OpenSea
             </a>
+            {currentAccount !== "" && (
+              <div className="text-slate-100">
+                {totalNFTsMinted} / {totalNFTs} NFTs minted so far
+              </div>
+            )}
             {currentAccount === "" ? (
               renderNotConnectedContainer()
             ) : (

@@ -1,6 +1,6 @@
 const main = async () => {
   const nftContractFactory = await hre.ethers.getContractFactory("CityNameNFT");
-  const nftContract = await nftContractFactory.deploy();
+  const nftContract = await nftContractFactory.deploy(8);
   await nftContract.deployed();
   console.log("Contract deployed to:", nftContract.address);
 
@@ -12,13 +12,21 @@ const main = async () => {
   await txn.wait();
   console.log("Minted NFT #1");
 
-  console.log(nftContract.getMerkleTreeLeaves());
+  console.log(await nftContract.getMerkleTreeLeaves());
 
   // Mint another NFT for fun.
-  txn = await nftContract.makeACityNFT("0xc9a4Cb308BA440C73345a2953822a50047B5cd77");
+  txn = await nftContract.makeACityNFT(
+    "0xc9a4Cb308BA440C73345a2953822a50047B5cd77"
+  );
   // Wait for it to be mined.
   await txn.wait();
-  console.log("Minted NFT #2")
+  console.log("Minted NFT #2");
+
+  let amount = await nftContract.getTotalNFTsMinted();
+  let total = await nftContract.getTotalNFTs();
+  console.log(total.toNumber());
+
+  console.log("Amount minted", amount.toNumber());
 };
 
 const runMain = async () => {
