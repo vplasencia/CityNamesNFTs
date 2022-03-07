@@ -8,6 +8,12 @@ import { ethers } from "ethers";
 // The abi file which is one of the things needed to communicate with the smart contract
 import cityNameNFT from "./utils/CityNameNFT.json";
 
+import verifier from "./utils/verifier.json";
+
+import merkleTreeWasm from "./utils/zkproof/merkletree.wasm";
+
+import merkleTreeZkey from "./utils/zkproof/merkletree_0001.zkey";
+
 // Constants
 const TWITTER_HANDLE = "ViviPlasenciaC";
 const TWITTER_LINK = `https://twitter.com/${TWITTER_HANDLE}`;
@@ -30,6 +36,12 @@ function App() {
   let [totalNFTsMinted, setTotalNFTsMinted] = useState(0);
 
   let [merkleTreeLeaves, setMerkleTreeLeaves] = useState([]);
+
+  let [proof, setProof] = useState("");
+
+  let [publicSignals, setPublicSignals] = useState("");
+
+  let [proofResult, setProofResult] = useState(false);
 
   const checkIfWalletIsConnected = async () => {
     const { ethereum } = window;
@@ -228,6 +240,122 @@ function App() {
     } catch (error) {
       console.log(error);
     }
+
+    // let leaves = [
+    //   "0xf227a9c3cd74dbb74a4e717a985f0a14ec8e3d32bd6d2618da31393b6fdd325b",
+    //   "0x044852b2a670ade5407e78fb2863c51de9fcb96542a07186fe3aeda6bb8a116d",
+    //   "0x044852b2a670ade5407e78fb2863c51de9fcb96542a07186fe3aeda6bb8a116d",
+    //   "0x044852b2a670ade5407e78fb2863c51de9fcb96542a07186fe3aeda6bb8a116d",
+    //   "0x044852b2a670ade5407e78fb2863c51de9fcb96542a07186fe3aeda6bb8a116d",
+    //   "0x044852b2a670ade5407e78fb2863c51de9fcb96542a07186fe3aeda6bb8a116d",
+    //   "0x044852b2a670ade5407e78fb2863c51de9fcb96542a07186fe3aeda6bb8a116d",
+    //   "0x044852b2a670ade5407e78fb2863c51de9fcb96542a07186fe3aeda6bb8a116d",
+    // ];
+
+    // const { proof: _proof, publicSignals: _publicSignals } =
+    //   await window.snarkjs.groth16.fullProve(
+    //     { leaves },
+    //     merkleTreeWasm,
+    //     merkleTreeZkey
+    //   );
+
+    // setProof(JSON.stringify(_proof, null, 2));
+    // setPublicSignals(JSON.stringify(_publicSignals, null, 2));
+
+    // const calldata = await window.snarkjs.groth16.exportSolidityCallData(
+    //   _proof,
+    //   _publicSignals
+    // );
+
+    // console.log(calldata);
+    // // const calldataSplit = calldata.split(",");
+    // // const proofFormatted = calldataSplit[0];
+    // // const publicSignalsFormatted = JSON.parse(proofFormatted[1]).map((x) =>
+    // //   BigInt(x).toString()
+    // // );
+
+    // // const calldata = await window.snarkjs.plonk.exportSolidityCallData(
+    // //   unstringifyBigInts(proof),
+    // //   unstringifyBigInts(publicSignals)
+    // // );
+    // // const calldataSplit = calldata.split(",");
+    // // const proofFormatted = calldataSplit[0];
+    // // const publicSignalsFormatted = JSON.parse(proofFormatted[1]).map((x) =>
+    // //   BigInt(x).toString()
+    // // );
+
+    // // console.log(publicSignalsFormatted);
+    // // const output = await verifierContract.verifyProof(proofFormatted, publicSignalsFormatted)
+  };
+
+  const generateProof = async () => {
+    try {
+      const { ethereum } = window;
+
+      if (ethereum) {
+        console.log("Getting Merkle Tree Leaves!");
+
+        const provider = new ethers.providers.Web3Provider(ethereum);
+        const signer = provider.getSigner();
+        const connectedContract = new ethers.Contract(
+          CONTRACT_ADDRESS,
+          cityNameNFT.abi,
+          signer
+        );
+
+        const _merkleTreeLeaves = await connectedContract.getMerkleTreeLeaves();
+        setMerkleTreeLeaves(_merkleTreeLeaves);
+
+        console.log(_merkleTreeLeaves);
+
+        let leaves = [];
+
+        for (let i = 0; i < _merkleTreeLeaves.length; i++) {
+          leaves.push(_merkleTreeLeaves[i]);
+        }
+
+        const { proof: _proof, publicSignals: _publicSignals } =
+          await window.snarkjs.groth16.fullProve(
+            { leaves },
+            merkleTreeWasm,
+            merkleTreeZkey
+          );
+
+        setProof(JSON.stringify(_proof, null, 2));
+        setPublicSignals(JSON.stringify(_publicSignals, null, 2));
+
+        const calldata = await window.snarkjs.groth16.exportSolidityCallData(
+          _proof,
+          _publicSignals
+        );
+
+        console.log(calldata);
+
+        try {
+          const verifierAddressContract =
+            "0x5abbe25F41581B3dcC354A595Ce3287E19839176";
+          const verifierConnectedContract = new ethers.Contract(
+            verifierAddressContract,
+            verifier.abi,
+            signer
+          );
+
+
+          const _veifierResult = await verifierConnectedContract.verifyProof(
+            {calldata}
+          );
+          setProofResult(_veifierResult);
+          console.log(_veifierResult);
+        } catch (err) {
+          setProofResult(false);
+          console.log(err);
+        }
+      } else {
+        console.log("Ethereum object doesn't exist!");
+      }
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   // Render Methods
@@ -308,20 +436,54 @@ function App() {
         </div>
         {currentAccount !== "" && (
           <div className="grid grid-cols-1 place-items-center gap-5">
-            <button
-              onClick={getMerkleTreeLeaves}
-              className="text-white font-semibold px-5 py-3 bg-gradient-to-r from-violet-500 to-blue-500 hover:from-violet-600 hover:to-blue-600 rounded-md"
-            >
-              Get Merkle Tree Leaves
-            </button>
-            <div className="grid grid-cols-1 place-items-center text-slate-100 gap-2">
-              {merkleTreeLeaves.map((leaf, index) => {
-                return (
-                  <div key={index}>
-                    <span>{leaf}</span>
+            <div className="grid grid-cols-1 place-items-center gap-5">
+              <button
+                onClick={getMerkleTreeLeaves}
+                className="text-white font-semibold px-5 py-3 bg-gradient-to-r from-violet-500 to-blue-500 hover:from-violet-600 hover:to-blue-600 rounded-md"
+              >
+                Get Merkle Tree Leaves
+              </button>
+              <div className="grid grid-cols-1 place-items-center text-slate-100 gap-2">
+                {merkleTreeLeaves.map((leaf, index) => {
+                  return (
+                    <div key={index} className="p-3 bg-slate-700 rounded-md">
+                      <span>{leaf}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+            <div className="grid grid-cols-1 place-items-center gap-5 w-96">
+              <button
+                onClick={generateProof}
+                className="text-white font-semibold px-5 py-3 bg-gradient-to-r from-violet-500 to-blue-500 hover:from-violet-600 hover:to-blue-600 rounded-md"
+              >
+                Generate Proof
+              </button>
+              <div className="grid grid-cols-1 place-items-center text-slate-100 gap-2">
+                {proof && (
+                  <div className="grid grid-cols-1 place-items-center gap-5">
+                    <div>
+                      <span className="text-lg text-slate-100 font-medium mr-2">
+                        Proof:
+                      </span>
+                      <span width={1 / 2}>{proof}</span>
+                    </div>
+                    <div>
+                      <span className="text-lg text-slate-100 font-medium mr-2">
+                        Signals:
+                      </span>
+                      <span>{publicSignals}</span>
+                    </div>
+                    <div>
+                      <span className="text-lg text-slate-100 font-medium mr-2">
+                        Result:
+                      </span>
+                      <span>{proofResult.toString()}</span>
+                    </div>
                   </div>
-                );
-              })}
+                )}
+              </div>
             </div>
           </div>
         )}
