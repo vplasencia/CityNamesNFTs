@@ -241,51 +241,6 @@ function App() {
       console.log(error);
     }
 
-    // let leaves = [
-    //   "0xf227a9c3cd74dbb74a4e717a985f0a14ec8e3d32bd6d2618da31393b6fdd325b",
-    //   "0x044852b2a670ade5407e78fb2863c51de9fcb96542a07186fe3aeda6bb8a116d",
-    //   "0x044852b2a670ade5407e78fb2863c51de9fcb96542a07186fe3aeda6bb8a116d",
-    //   "0x044852b2a670ade5407e78fb2863c51de9fcb96542a07186fe3aeda6bb8a116d",
-    //   "0x044852b2a670ade5407e78fb2863c51de9fcb96542a07186fe3aeda6bb8a116d",
-    //   "0x044852b2a670ade5407e78fb2863c51de9fcb96542a07186fe3aeda6bb8a116d",
-    //   "0x044852b2a670ade5407e78fb2863c51de9fcb96542a07186fe3aeda6bb8a116d",
-    //   "0x044852b2a670ade5407e78fb2863c51de9fcb96542a07186fe3aeda6bb8a116d",
-    // ];
-
-    // const { proof: _proof, publicSignals: _publicSignals } =
-    //   await window.snarkjs.groth16.fullProve(
-    //     { leaves },
-    //     merkleTreeWasm,
-    //     merkleTreeZkey
-    //   );
-
-    // setProof(JSON.stringify(_proof, null, 2));
-    // setPublicSignals(JSON.stringify(_publicSignals, null, 2));
-
-    // const calldata = await window.snarkjs.groth16.exportSolidityCallData(
-    //   _proof,
-    //   _publicSignals
-    // );
-
-    // console.log(calldata);
-    // // const calldataSplit = calldata.split(",");
-    // // const proofFormatted = calldataSplit[0];
-    // // const publicSignalsFormatted = JSON.parse(proofFormatted[1]).map((x) =>
-    // //   BigInt(x).toString()
-    // // );
-
-    // // const calldata = await window.snarkjs.plonk.exportSolidityCallData(
-    // //   unstringifyBigInts(proof),
-    // //   unstringifyBigInts(publicSignals)
-    // // );
-    // // const calldataSplit = calldata.split(",");
-    // // const proofFormatted = calldataSplit[0];
-    // // const publicSignalsFormatted = JSON.parse(proofFormatted[1]).map((x) =>
-    // //   BigInt(x).toString()
-    // // );
-
-    // // console.log(publicSignalsFormatted);
-    // // const output = await verifierContract.verifyProof(proofFormatted, publicSignalsFormatted)
   };
 
   const generateProof = async () => {
